@@ -83,7 +83,7 @@ function _todoist_task_add_form($form, $form_state) {
     '#title' => 'Due data',
     '#type' => 'textfield',
     '#description' => t('Add due data in mm/dd/yy format e.g fri at 2pm, today, today at 2, 10/5, 10/5/2006 at 2pm, 5 10 2010 etc. for more info please check this link <a href=
-    "https://todoist.com/Help/DatesTimes">Todoist datatime</a>'),
+    "https://support.todoist.com/hc/en-us/articles/205325931-Dates-and-Times">Todoist datatime</a>'),
     '#required' => TRUE,
   );
 
@@ -120,7 +120,6 @@ function _todoist_task_add_form_submit($form, &$form_state) {
         $data = array(
           // get api token
           'token' => variable_get('user_token'),
-          //'commands' => '[{"type": "item_add", "temp_id": "43f7ed23-a038-46b5-b2c9-4abda9097ffa", "uuid": "997d4b43-55f1-48a9-9e66-de5785dfd69b", "args": {"content": "Task1", "project_id": 128501470}}]',
           'content' => $content,
           'date_string' => $date,
         );
@@ -170,7 +169,6 @@ function _todoist_task_delete_form($form, &$form_state, $task_id) {
  */
 function _todoist_task_delete_form_submit($form, &$form_state) {
 
-  //https://api.todoist.com/API/deleteItems?ids=[10702531]&token=f3a00e7c4b43bad62d8ed528db8569259a1e03b6
   if ($form_state['values']['task_id']) {
     $ids = $form_state['values']['task_id'];
     $token = variable_get('user_token');
@@ -179,13 +177,6 @@ function _todoist_task_delete_form_submit($form, &$form_state) {
       'token' => $token,
       'commands' => '[{"type": "item_delete", "uuid": "f8539c77-7fd7-4846-afad-3b201f0be8a5", "args": {"ids": [' . $ids . ']}}]',
     );
-    //$serialize = serialize($data);
-    // $apicall .= 'token='.$token;
-    // $apicall .= '&type=item_delete';
-    // $apicall .= '&ids='.$ids;
-    //$apicall .= $serialize;
-    //$api = url($apicall, array('query' => $data));
-    //$http_result = drupal_http_request($apicall);
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $apicall);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -203,12 +194,6 @@ function _todoist_task_delete_form_submit($form, &$form_state) {
       drupal_set_message('1 task deleted successfully.');
       $form_state['redirect'] = 'admin/content/todoist/';
     }
-    // if($http_result->status_message == 'OK'){
-    //   drupal_set_message('1 task deleted successfully.');
-    //   //$form_state['redirect'] = 'admin/content/todoist/';
-    // } else{
-    //     drupal_set_message(t('Please check your data or configuration setting.'), 'error');
-    // }
   }
 }
 
@@ -242,26 +227,13 @@ function _todoist_task_complete_form($form, &$form_state, $task_id) {
  */
 function _todoist_task_complete_form_submit($form, &$form_state) {
 
-  //https://api.todoist.com/API/completeItems?ids=[10407619]&token=f3a00e7c4b43bad62d8ed528db8569259a1e03b6
-
   if ($form_state['values']['task_id']) {
     $ids = $form_state['values']['task_id'];
-    // $apicall = 'https://api.todoist.com/API/completeItems?';
-    //   $apicall .= '&ids=['.$ids.']';
-    //   $apicall .= '&token='.variable_get('user_token');
-
-    //   $http_result = drupal_http_request($apicall);
-    //   if($http_result->status_message == 'OK'){
-    //     drupal_set_message('1 task complete successfully.');
-    //     $form_state['redirect'] = 'admin/content/todoist/';
-    //   } else{
-    //       drupal_set_message(t('Please check your data or configuration setting.', 'error'));
-    //   }
     $token = variable_get('user_token');
     $apicall = 'https://todoist.com/API/v7/sync?';
     $post_data = array(
       'token' => $token,
-      'commands' => '[{"type": "item_complete", "uuid": "a74bfb5c-5f1d-4d14-baea-b7415446a871", "args": {"ids": [' . $ids . ']}}]',
+      'commands' => '[{"type": "item_complete", "uuid": "a74bfb5c-' . GeraHash(4) . '-4d14-baea-' . GeraHash(12) . '", "args": {"ids": [' . $ids . ']}}]',
     );
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $apicall);
@@ -277,7 +249,7 @@ function _todoist_task_complete_form_submit($form, &$form_state) {
     }
     else {
       curl_close($ch);
-      drupal_set_message('1 task deleted successfully.');
+      drupal_set_message('1 task completed successfully.');
       $form_state['redirect'] = 'admin/content/todoist/';
     }
   }
@@ -288,7 +260,6 @@ function _todoist_task_complete_form_submit($form, &$form_state) {
  */
 function _todoist_task_edit_form($form, $form_state, $task_id) {
 
-  //$items = https://api.todoist.com/API/getItemsById?ids=[210873,210874]&token=fb5f22601ec566e48083213f7573e908a7a272e5;
   $ids = $task_id;
   $apicall = 'https://todoist.com/API/v7/items/get?';
   $apicall .= '&token=' . variable_get('user_token');
@@ -352,31 +323,7 @@ function _todoist_task_edit_form_submit($form, &$form_state) {
 
         $content = $form_state['values']['task_content'];
         $date = $form_state['values']['task_due_data'];
-
-
-        //https://api.todoist.com/API/updateItem?id=10702531&content=TestHello&token=f3a00e7c4b43bad62d8ed528db8569259a1e03b6
-
-        //$apicall = 'https://api.todoist.com/API/updateItem?';
         $id = $form_state['values']['task_id'];
-
-        // $data = array(
-        //   'id' => $id,
-        // get api token
-        //   'token' => variable_get('user_token'),
-        //   'content' => $content,
-        //   'date_string' => $date,
-        //   );
-
-        // $api = url($apicall, array('query' => $data));
-
-        // $http_result = drupal_http_request($api);
-
-        // if($http_result->status_message == 'OK'){
-        //   drupal_set_message(t('Task successfully added.'));
-        //   $form_state['redirect'] = 'admin/content/todoist';
-        // } else{
-        //     drupal_set_message('Please check your data or configuration setting.', 'warning');
-        // }
         $token = variable_get('user_token');
         $apicall = 'https://todoist.com/API/v7/sync?';
         $post_data = array(
@@ -392,7 +339,6 @@ function _todoist_task_edit_form_submit($form, &$form_state) {
 
         $parsed = curl_exec($ch);
         $result = json_decode($parsed, TRUE);
-        drupal_http_request('todoist://addtask?content=mytask&date=tomorrow&priority=4');
         if (curl_errno($ch)) {
           drupal_set_message('Error:' . curl_error($ch), 'error');
         }
@@ -404,5 +350,21 @@ function _todoist_task_edit_form_submit($form, &$form_state) {
       }
       break;
   }
+}
+
+//Return random string for UUID edit task
+function GeraHash($qtd) {
+  //Under the string $Caracteres you write all the characters you want to be used to randomly generate the code.
+  $Caracteres = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  $QuantidadeCaracteres = strlen($Caracteres);
+  $QuantidadeCaracteres--;
+
+  $Hash = NULL;
+  for ($x = 1; $x <= $qtd; $x++) {
+    $Posicao = rand(0, $QuantidadeCaracteres);
+    $Hash .= substr($Caracteres, $Posicao, 1);
+  }
+
+  return $Hash;
 }
 

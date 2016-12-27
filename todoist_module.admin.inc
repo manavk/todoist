@@ -39,7 +39,6 @@ function _todoist_config_form($form, &$form_state) {
  *Submit handler for todoist_config_form
  */
 function _todoist_config_form_submit($form, $form_state) {
-
   if ($form_state['values']['user_mail'] && $form_state['values']['user_pass']) {
     if (!valid_email_address($form_state['values']['user_mail'])) {
       form_set_error('submitted][user_mail', t('The email address appears to be invalid.'));

@@ -3,7 +3,7 @@
 /**
  *Implementation of hook_permission()
  */
-function todoist_com_permission() {
+function todoist_module_permission() {
   $permission = array();
   $permission['todoist access'] = array(
     'title' => t('Todoist access'),
@@ -16,8 +16,8 @@ function todoist_com_permission() {
 /**
  * Implements hook_help.
  */
-function todoist_com_help($path, $arg) {
-  if ($path == 'admin/help#todoist_com') {
+function todoist_module_help($path, $arg) {
+  if ($path == 'admin/help#todoist_module') {
     $output = '';
     $output .= '<h3>' . t('About') . '</h3>';
     return $output;
@@ -27,7 +27,7 @@ function todoist_com_help($path, $arg) {
 /**
  *hook_menu()
  */
-function todoist_com_menu() {
+function todoist_module_menu() {
   $items = array();
   $items['admin/config/user-interface/todoist'] = array(
     'title' => 'Todoist configuration',
@@ -36,7 +36,7 @@ function todoist_com_menu() {
     'page arguments' => array('_todoist_config_form'),
     'access callback' => TRUE,
     'access arguments' => array('administer site configuration'),
-    'file' => 'todoist_com.admin.inc',
+    'file' => 'todoist_module.admin.inc',
     'file path' => drupal_get_path('modules', 'todoist'),
     'weight' => -10,
   );
@@ -46,7 +46,7 @@ function todoist_com_menu() {
     'type' => MENU_NORMAL_ITEM,
     'page callback' => '_todoist_content_list',
     'access arguments' => array('administer site configuration'),
-    'file' => 'include/todoist_com.inc',
+    'file' => 'include/todoist_module.inc',
     'file path' => drupal_get_path('modules', 'todoist'),
     'weight' => 10,
   );
@@ -57,7 +57,7 @@ function todoist_com_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_todoist_task_add_form'),
     'access arguments' => array('administer site configuration'),
-    'file' => 'include/todoist_com.inc',
+    'file' => 'include/todoist_module.inc',
     'file path' => drupal_get_path('modules', 'todoist'),
     'weight' => 10,
   );
@@ -68,7 +68,7 @@ function todoist_com_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_todoist_task_delete_form', 1),
     'access arguments' => array('administer site configuration'),
-    'file' => 'include/todoist_com.inc',
+    'file' => 'include/todoist_module.inc',
     'file path' => drupal_get_path('modules', 'todoist'),
     'weight' => 10,
   );
@@ -79,7 +79,7 @@ function todoist_com_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_todoist_task_complete_form', 1),
     'access arguments' => array('administer site configuration'),
-    'file' => 'include/todoist_com.inc',
+    'file' => 'include/todoist_module.inc',
     'file path' => drupal_get_path('modules', 'todoist'),
     'weight' => 10,
   );
@@ -90,7 +90,7 @@ function todoist_com_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_todoist_task_edit_form', 1),
     'access arguments' => array('administer site configuration'),
-    'file' => 'include/todoist_com.inc',
+    'file' => 'include/todoist_module.inc',
     'file path' => drupal_get_path('modules', 'todoist'),
     'weight' => 10,
   );
@@ -101,18 +101,25 @@ function todoist_com_menu() {
 /**
  * Implements hook_menu_local_tasks_alter().
  */
-function todoist_com_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+function todoist_module_menu_local_tasks_alter(&$data, $router_item, $root_path) {
 
-  $user_apicall = 'https://api.todoist.com/API/ping?token=' . variable_get('user_token');
+  $token = variable_get('user_token');
+
+  $user_apicall = 'https://todoist.com/API/v7/sync?token=' . $token;
   $http_result = drupal_http_request($user_apicall);
   if ($http_result->status_message == 'OK') {
     // Add action link to 'admin/todoist/add' on 'admin/content/todoist' page.
     if ($root_path == 'admin/content/todoist') {
-      $item = menu_get_item('admin/todoist/add');
+      $item = menu_get_item('admin/content/todoist/add');
       if ($item['access']) {
-        $data['actions']['output'][] = array(
+        $data['actions']['output'][] = array (
           '#theme' => 'menu_local_action',
           '#link' => $item,
+          'localized_options' => array(
+          'attributes' => array(
+              'title' => t('Add task'),
+            ),
+          ),
         );
       }
     }
